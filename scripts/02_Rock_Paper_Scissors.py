@@ -60,7 +60,7 @@ def total_score(strategy_guide,parser):
 
 assert total_score(test_data,choices) == test_result
 
-with open('C:/Users/Kathryn/OneDrive/dev/AdventOfCode2022/input_data/02_Rock_Paper_Scissors.txt', 'r', encoding="utf-8") as file:
+with open('./input_data/02_Rock_Paper_Scissors.txt', 'r', encoding="utf-8") as file:
     input = file.read()
 
 answer_1 = total_score(input,choices)
