@@ -15,6 +15,7 @@ test_data = """
 10000"""
 
 test_result = 24000
+test_result2 = 45000
 
 
 def most_calories(data):
@@ -31,8 +32,19 @@ def most_calories(data):
 			max_calories = total_calories_carried
 	return max_calories
 
+assert most_calories(test_data) == test_result
 
-print(most_calories(test_data))
+
+with open('./input_data/01_Calorie_Counting.txt', 'r', encoding="utf-8") as file:
+	input = file.read()
+	
+print(most_calories(input))
+
+
+
+
+	
+
 
 
 
