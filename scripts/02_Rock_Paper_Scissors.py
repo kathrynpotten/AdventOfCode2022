@@ -14,54 +14,56 @@ loss = 0
 draw = 3
 win = 6         """
 
-scores = {'A':1,'B':2,'C':3,
-          'X':1,'Y':2,'Z':3}
-outcomes = {'win':6,'loss':0,'draw':3}
+choice_scores = {'Rock':1,
+          'Paper':2,
+          'Scissors':3}
+opponent_choice = {'A': 'Rock',
+                   'B': 'Paper',
+                   'C': 'Scissors'}
+player_choice = {'X': 'Rock',
+                 'Y': 'Paper',
+                 'Z': 'Scissors'}
+outcome_scores = {'win':6,'loss':0,'draw':3}
 
+wins = {('Rock','Paper'),
+        ('Paper','Scissors'),
+        ('Scissors','Rock')}
+losses = {('Paper','Rock'),
+          ('Scissors','Paper'),
+          ('Rock','Scissors')}
 
-def convert_to_score(round):
-    return [scores.get(val) for val in round]
-
-def outcome(round_val):
-    opponent, player = round_val[0], round_val[1]
-    if player > opponent:
+def outcome(opponent,player):
+    if (opponent, player) in wins:
         outcome = 'win'
-    elif player < opponent:
+    elif (opponent, player) in losses:
         outcome = 'loss'
-    elif player == opponent:
+    elif opponent == player:
         outcome = 'draw'
     return outcome
 
-def score(round_val):
-    opponent, player = round_val[0], round_val[1]
-    return player + outcomes.get(outcome(round_val))
+def score(opponent,player):
+    outcome_score = outcome_scores[outcome(opponent,player)]
+    player_score = choice_scores[player]
+    return player_score + outcome_score
 
 
-def select_round(rounds):
-    # split into separate rounds
-    rounds_list = rounds.strip().split('\n')
-    rounds = []
-    for i in range(len(rounds_list)):
-        round = rounds_list[i].split(' ')
-        rounds.append(round)
-    return rounds
+def choices(round):
+    choice = round.split(' ')
+    opponent, player = opponent_choice[choice[0]],player_choice[choice[1]]
+    return opponent,player
 
 
-def total_score(strategy_guide):
-    # split into separate rounds
-    rounds = select_round(strategy_guide)
-    converted = [convert_to_score(round) for round in rounds]
-    # calculate score per round
-    scores = [score(round) for round in converted]
+def total_score(strategy_guide,parser):
+    rounds = strategy_guide.strip().split('\n')
+    scores = [score(*parser(round)) for round in rounds]
     return sum(scores)
 
-
-assert total_score(test_data) == test_result
+assert total_score(test_data,choices) == test_result
 
 with open('C:/Users/Kathryn/OneDrive/dev/AdventOfCode2022/input_data/02_Rock_Paper_Scissors.txt', 'r', encoding="utf-8") as file:
     input = file.read()
 
-answer_1 = total_score(input)
+answer_1 = total_score(input,choices)
 print(answer_1)
 
 
