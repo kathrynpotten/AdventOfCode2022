@@ -42,8 +42,33 @@ def priority_total(list):
 assert priority_total(test_data_to_list) == 157
 
 
+
+
+def group_item(list):
+    first_bag, second_bag, third_bag = list[0],list[1],list[2]
+    items_1 =  set(first_bag).intersection(second_bag)
+    group_item = items_1.intersection(third_bag)
+    return group_item.pop()
+
+def group_priorities(list):
+    total_priority = 0
+    for i in range(int(len(list)/3)):
+        group_no = (i+1)*3
+        group_list = list[group_no-3:group_no]
+        item = group_item(group_list)
+        total_priority += assign_priority(item)
+    return total_priority
+
+assert group_priorities(test_data_to_list) == 70
+
+
 with open('../input_data/03_Rucksack_Reorganisation.txt', 'r', encoding="utf-8") as file:
-    input = file.readlines()
+    input = file.read().strip().split('\n')
+
 
 answer_1 = priority_total(input)
 print(answer_1)
+
+answer_2 = group_priorities(input)
+print(answer_2)
+    
