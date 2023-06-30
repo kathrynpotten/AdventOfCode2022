@@ -19,11 +19,12 @@ test_result2 = 45000
 
 
 def most_calories(data):
-	# split data into elves
+	# split data into elves and convert into integers
 	calories = data.split('\n') 
 	if calories.index('') == 0:
 		calories = calories[1:]
 	calories = [0 if cals == '' else int(cals) for cals in calories]
+	#calculate total calories per elf and keep max
 	max_calories = 0	
 	for i in range(calories.count(0)):
 		total_calories_carried = sum(calories[:calories.index(0)+1])
