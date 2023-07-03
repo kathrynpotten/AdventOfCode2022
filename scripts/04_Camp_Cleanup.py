@@ -45,7 +45,6 @@ def pairs_included(list):
 assert pairs_included(test_data_to_list) == test_result
 
 
-
 with open('../input_data/04_Camp_Cleanup.txt', 'r', encoding="utf-8") as file:
     input = file.read().strip().split('\n')
 
