@@ -9,6 +9,7 @@ move 2 from 2 to 1
 move 1 from 1 to 2"""
 
 test_result = 'CMZ'
+test_result2 = 'MCD'
 
 
 #test_data_to_list = test_data.split('\n')
@@ -44,7 +45,6 @@ def parse_input(data):
     moves = [decode_move(move) for move in instructions.strip().split('\n')]
     return start, moves
 
-#print(start_position(test_data.split('\n\n')[0]))
 
 def make_move(position,move):
     quantity,origin,end = move
@@ -68,12 +68,40 @@ def rearrange_outcome(data):
 
 assert rearrange_outcome(test_data) == test_result
 
+#new crane move sequence
+def make_move_9001(position,move):
+    quantity,origin,end = move
+    new_position = position
+    moving_crates = new_position[origin-1][-quantity:]
+    for crate in moving_crates:
+        new_position[end-1].append(crate)
+    new_position[origin-1] = new_position[origin-1][:-quantity]
+    return new_position
+
+def rearrange_outcome_9001(data):
+    start, moves = parse_input(data)
+    next = start
+    for move in moves:
+        end = make_move_9001(next,move)
+        next = end
+    top_of_pile = ''
+    for stack in next:
+        top_of_pile += stack[-1]
+    return top_of_pile
+
+
+assert rearrange_outcome_9001(test_data) == test_result2
+
 
 with open('../input_data/05_Supply_Stacks.txt', 'r', encoding="utf-8") as file:
     input = file.read()
 
 answer_1 = rearrange_outcome(input)
 print(answer_1)     
+
+answer_2 = rearrange_outcome_9001(input)
+print(answer_2)
+
 
     
     
