@@ -7,6 +7,7 @@ test_data = """
 2-6,4-8"""
 
 test_result = 2
+test_result2 = 4
 
 test_data_to_list = test_data.strip().split('\n')
 
@@ -44,9 +45,30 @@ def pairs_included(list):
 
 assert pairs_included(test_data_to_list) == test_result
 
+def task_compare_overlap(pair):
+    elf1,elf2 = pair
+    elf1_tasks = [int(task) for task in elf1.split('-')]
+    elf2_tasks = [int(task) for task in elf2.split('-')]
+    elf1_range = list(range(elf1_tasks[0],elf1_tasks[1]+1))
+    elf2_range = list(range(elf2_tasks[0],elf2_tasks[1]+1))
+    if any(tasks in elf2_range for tasks in elf1_range):
+        return True
+    else:
+        return False
+    
+def pairs_overlap(list):
+    pairs = [tuple(pair.split(',')) for pair in list]
+    overlap = [task_compare_overlap(pair) for pair in pairs]
+    return sum(overlap)
+
+assert pairs_overlap(test_data_to_list) == test_result2
+
 
 with open('../input_data/04_Camp_Cleanup.txt', 'r', encoding="utf-8") as file:
     input = file.read().strip().split('\n')
 
 answer_1 = pairs_included(input)
 print(answer_1)
+
+answer_2 = pairs_overlap(input)
+print(answer_2)
