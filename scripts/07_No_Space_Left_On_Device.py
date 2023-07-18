@@ -300,31 +300,21 @@ def directory_size(listing, files):
 
 def parent_directory_size(directories, listing, files): #NEEDS EDITING TO PROCESS INNER LOOP MULTIPLE TIMES
     size = 0
-    for file in listing:
-        if 'dir' in file:
-            directory_name = file[4:]
-            directory_listing = directories[directory_name]
-            for inner_file in directory_listing:
-                if 'dir' in inner_file:
-                    inner_directory_name = inner_file[4:]
-                    inner_directory_listing = directories[inner_directory_name]
-                    for inner_inner_file in inner_directory_listing:
-                        size += files[inner_inner_file]
-                else:
-                    size += files[inner_file]
-        else:
-            size += files[file]
+    files_listing = [file for file in listing if 'dir' not in file]
+    dir_listing = [file[4:] for file in listing if 'dir' in file]
+    if dir_listing == []:
+        return directory_size(files_listing,files)
+    else:
+        for dir in dir_listing:
+            listing = directories[dir]
+            size += parent_directory_size(directories, listing, files)      
     return size
 
 
 def get_sizes(directories,listing,files):
     directory_sizes = {}
-    for directory in directories:
-        if any('dir' in file for file in listing):
-            size = parent_directory_size(directories, listing, files)
-        else:
-           size = directory_size(listing, files) 
-        directory_sizes[directory] = size
+    for directory in directories.keys():
+        directory_sizes[directory] = parent_directory_size(directories, listing, files)
     return directory_sizes
 
 
@@ -334,7 +324,7 @@ def small_directories(directories, files):
     small_directories = {}
     for directory,listing in directories.items():
         directory_sizes = get_sizes(directories,listing,files)
-        
+        print(directory_sizes)
         if directory_sizes[directory] > 100000:
             pass
         else:
@@ -355,9 +345,13 @@ def possible_deletions(lines):
 
 
 
-assert possible_deletions(test_dir3_to_list) == 0
+#assert possible_deletions(test_dir3_to_list) == 0
 
-assert possible_deletions(test_data_to_list) == test_result
+
+print(possible_deletions(test_data_to_list))
+
+
+#assert possible_deletions(test_data_to_list) == test_result
 
 
 
@@ -365,9 +359,9 @@ assert possible_deletions(test_data_to_list) == test_result
 with open('../input_data/07_No_Space_Left_On_Device.txt', 'r', encoding="utf-8") as file:
     input = file.read().strip().split('\n')
 
-answer_1 = possible_deletions(input)   
+#answer_1 = possible_deletions(input)   
 
-print(answer_1)
+#print(answer_1)
 
 
     
