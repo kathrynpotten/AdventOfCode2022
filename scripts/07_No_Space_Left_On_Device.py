@@ -104,7 +104,7 @@ def find_listings(lines):
     for line_number, line in enumerate(lines):
         while not listing: 
             if line == '$ ls':
-                directory = lines[line_number-1][-1:]
+                directory = lines[line_number-1][5:] 
                 listings[directory] = line_number+1
                 listing = True
             break
@@ -298,7 +298,7 @@ def directory_size(listing, files):
             size += files[file]
         return size
 
-def parent_directory_size(directories, listing, files):
+def parent_directory_size(directories, listing, files): #NEEDS EDITING TO PROCESS INNER LOOP MULTIPLE TIMES
     size = 0
     for file in listing:
         if 'dir' in file:
