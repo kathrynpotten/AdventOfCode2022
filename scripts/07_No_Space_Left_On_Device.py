@@ -339,6 +339,7 @@ def parse_terminal_output(lines):# NOT RIGHT - WORKS FOR FIRST DIRECTORY THEN GO
                     directories.append(directory)
             continue
         #files are being counted twice, and every directory contains all files...
+        # need to somewhow delete the line once it's been checked
         elif words[0] != 'dir':
             path = current_directory + '/' + words[1]
             files.append(File(path,int(words[0])))
