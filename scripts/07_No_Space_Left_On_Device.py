@@ -62,9 +62,26 @@ $ cd a
 $ ls
 29116 f
 2557 g
-62596 h.lst"""
+62596 h.lst""".strip().split('\n')
 
-test_dir5_to_list = test_dir5.strip().split('\n')
+test_dir6 = """$ cd /
+$ ls
+dir a
+14848514 b.txt
+8504156 c.dat
+dir d
+$ cd a
+$ ls
+dir e
+29116 f
+2557 g
+62596 h.lst
+$ cd e
+$ ls
+584 i
+$ cd ..""".strip().split('\n')
+
+
 
 """ End of test data"""
 
@@ -96,6 +113,9 @@ class File():
     def __hash__(self) -> int:
         return hash(self.path)
 
+    def __del__(self):
+        return 'File deleted'
+
     def layers(self):
         c = Counter(self.path)
         return c['/']
@@ -120,6 +140,8 @@ class Directory(File):
         self.files = files
         for file in self.files:
             self.size += file.size
+        
+    
 
     def layers(self):
         c = Counter(self.path)
@@ -161,13 +183,14 @@ class ParentDirectory(Directory):
         if self.name == '':
             self.name = '/'
         self.directories = directories
-        for directory in directories:
-            self.size += directory.size
+    
+        
 
     def add_directory(self,*args):
         for arg in args:
             self.directories.append(arg)
             self.size += arg.size
+            
 
     def delete_directory(self, *args):
         for arg in args:
@@ -175,7 +198,6 @@ class ParentDirectory(Directory):
                 print('Directory does not exist')
             else:
                 self.directoryies.remove(arg)
-                self.size -= arg.size
                 print('Directory deleted')
 
     def add_file(self,*args):
@@ -201,15 +223,13 @@ class FileSystem():
 
     """ Top level file system. Contains list of all files in a system  """
 
-    def __init__(self, files=[], max_size = 70000000, total_size = 0):
+    def __init__(self, files=[], max_size = 70000000):
         self.files = sorted(set(files))
         self.directories = [ file for file in files 
-                             if isinstance(file, Directory)
-                             or isinstance(file, ParentDirectory) ]
+                             if isinstance(file, Directory) ]
         self.max_size = max_size
-        self.size = total_size
-        for file in self.files:
-            self.size += file.size
+        self.size = sum([file.size for file in self.files])
+        
 
     def __str__(self):
         return '\n'.join(str(file) for file in self.files)
@@ -219,15 +239,13 @@ class FileSystem():
     
     def small_dirs(self, max_size = 100000):
         small_directories = []
-        size = 0
         for directory in self.directories:
-            print(directory)
             if directory.size > max_size:
                 pass
             else:
                 small_directories.append(directory.name)
-                size += directory.size
-        return small_directories, size
+        
+        return small_directories
     
 
 
@@ -245,21 +263,24 @@ class FileSystem():
 
 def listing(lines, directory):
     """ takes in lines from terminal output and finds the location of the directory's listing"""
- 
+    listing = False
     for line_number, line in enumerate(lines):
-        if line == f'$ cd {directory.name}':
-            start = line_number
+        while not listing:
+            if line == f'$ cd {directory.name}':
+                start = line_number
+                listing = True
             break
-        else:
-            continue
-    for line_number, line in enumerate(lines[start+1:]):
-        if line[0] == '$ cd':
-            end = line_number+start+1
+        while listing:
+            if line != f'$ cd {directory.name}' and line[:4] == '$ cd':
+                end = line_number
+                listing = False
+                break
+            elif line_number == len(lines)-1:
+                end = line_number+1
+                listing = False
+                break
             break
-        elif line_number == len(lines[start+1:])-1:
-            end = line_number+start+2
-            break
-        
+    
     return (start, end)
     
 def is_parent_directory(lines, directory):
@@ -269,7 +290,7 @@ def is_parent_directory(lines, directory):
     else:
         return directory
     
-def populate_directory(lines, directory): # NEEDS WORK, CURRENTLY PUTTING ALL FILES UNDER EVERYTHING
+def populate_directory(lines, directory):
     start, end = listing(lines, directory)
     directory = is_parent_directory(lines[start+2:end], directory)
     for line_number, line in enumerate(lines[start+2:end]):
@@ -277,22 +298,28 @@ def populate_directory(lines, directory): # NEEDS WORK, CURRENTLY PUTTING ALL FI
             path = directory.path.removesuffix('.') + line[4:] + '/.'
             inner_directory = populate_directory(lines[line_number+1:], Directory(path))
             directory.add_directory(inner_directory)
-            break
         elif line[0] != '$':
             path = directory.path.removesuffix('.') + line.split()[1]
             directory.add_file(File(path,int(line.split()[0])))
-            continue
+
 
     return directory
 
 
-directory =  populate_directory(test_dir5_to_list, Directory('/a/.'))
-filenames = [file.name for file in directory.files]
-assert filenames == ['f','g','h.lst']
-assert directory.size == 94269
+#dir5 =  populate_directory(test_dir5, Directory('/a/.'))
+#filenames = [file.name for file in dir5.files]
+#assert filenames == ['f','g','h.lst']
+#assert dir5.size == 94269
 
 
-def parse_terminal_output(lines):
+#dir6 = populate_directory(test_dir6, Directory('/a/.'))
+#assert dir6.size == 94853
+#print([str(file) for file in dir6.files])
+
+
+
+
+def parse_terminal_output(lines):# NOT RIGHT - WORKS FOR FIRST DIRECTORY THEN GOES WRONG - DOING OTHER DIRECTORIES MULTIPLE TIMES
 
     """ takes in lines from terminal output and converts into a filesystem"""
     
@@ -311,16 +338,13 @@ def parse_terminal_output(lines):
             continue
         elif words[0] == 'dir':
             path = current_directory + '/' + words[1] + '/.'
-            new_lines = lines[line_index:]
-            directory = populate_directory(new_lines, Directory(path))
-            directories.append(directory)
-            
+            new_lines = lines[line_index+1:]
+            directory = populate_directory(new_lines, Directory(path)) # THIS IS THE PROBLEM LINE
+            directories.append(directory)   
         else:
             path = current_directory + '/' + words[1]
             files.append(File(path,int(words[0])))
     
-    for directory in directories:
-        print(f'{directory.name}:',  [str(file) for file in directory.files])
     all_files = files + directories
 
     return FileSystem(all_files)
@@ -328,7 +352,8 @@ def parse_terminal_output(lines):
 
 
 test_filesystem = parse_terminal_output(test_data_to_list)
-
+print([str(directory) for directory in test_filesystem.directories])
+#print(test_filesystem)
 #assert test_filesystem.small_dirs()[1] == test_result
    
 
@@ -340,81 +365,15 @@ test_filesystem = parse_terminal_output(test_data_to_list)
     
 
 
-test_files = {'abc': 123, 'j': 10, 'k': 30}
-test_dir_xyz_listing = ['j','k']
-#test_dir_xyz = Directory('xyz',test_dir_xyz_listing)
-#test_dir_xyz.get_file_sizes(test_files)
-#print(test_dir_xyz.sizes)
-
-
-test_dir_mno = ['dir xyz', 'abc']
-#test_dir_mno = convert_to_directories('mno',test_dir_mno)
-#test_dir_mno.get_file_sizes(test_files)
 
 
 
 
-def filesystem_class(lines):
-    """ extract filesystem from given terminal output """
-    directories = []
-    file_sizes = {}
-
-    listings = find_listings(lines)
-    for directory, linelist in listings.items():
-
-        lines = lines[linelist[0]:linelist[1]]
-        listing, files = extract_listing(lines)
-
-        directory = convert_to_directories(directory, listing)
-
-        file_sizes.update(files)
-        directory.get_file_sizes(file_sizes)
-        directories.append(directory)
-        
-    
-    return directories, files
 
 
 
 
-#filesystem(test_dir1_to_list)
-#assert filesystem(test_dir3_to_list) == (['/'], {'b.txt':14848514, 'c.dat': 8504156})
 
-
-#assert filesystem(test_dir1_to_list)[1] == ({'b.txt':14848514, 'c.dat': 8504156})
-
-
-
-""" find possible files for deletion """
-
-
-  
-def small_directories_class(directories):
-    """ given a  list of directories, create a list of the small directories """
-    small_directories = []
-    for directory in directories:
-        if directory.large():
-            pass
-        else:
-            small_directories.append(directory)
-    return small_directories
-
-def sum_of_sizes_class(directories):
-    sum_of_sizes = 0
-    for directory in directories:
-        sum_of_sizes += directory.size()
-    return sum_of_sizes
-
-def possible_deletions_class(lines):
-    directories, files = filesystem_class(lines)
-    small = small_directories(directories)
-    return sum_of_sizes(small)
-
-
-
-#assert possible_deletions(test_dir3_to_list) == 0
-
-#assert possible_deletions(test_data_to_list) == test_result
 
 
 
