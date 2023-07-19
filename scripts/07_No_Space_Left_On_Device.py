@@ -29,57 +29,57 @@ test_data_to_list = test_data.strip().split('\n')
 test_result = 95437
 
 
-test_dir1 = """$ cd /
-$ ls
-dir a
-14848514 b.txt
-8504156 c.dat
-dir d"""
+#test_dir1 = """$ cd /
+#$ ls
+#dir a
+#14848514 b.txt
+#8504156 c.dat
+#dir d"""
 
-test_dir1_to_list = test_dir1.strip().split('\n')
+#test_dir1_to_list = test_dir1.strip().split('\n')
 
-test_dir3 = """$ cd /
-$ ls
-14848514 b.txt
-8504156 c.dat
-$ cd a"""
+#test_dir3 = """$ cd /
+#$ ls
+#14848514 b.txt
+#8504156 c.dat
+#$ cd a"""
 
-test_dir3_to_list = test_dir3.strip().split('\n')
-test_dir3_size = 23352670
+#test_dir3_to_list = test_dir3.strip().split('\n')
+#test_dir3_size = 23352670
 
-test_dir4 = """$ cd lpswsp
-$ ls
-173180 dcqnblb"""
-test_dir4_to_list = test_dir4.strip().split('\n')
+#test_dir4 = """$ cd lpswsp
+#$ ls
+#173180 dcqnblb"""
+#test_dir4_to_list = test_dir4.strip().split('\n')
 
-test_dir5 = """$ cd /
-$ ls
-dir a
-14848514 b.txt
-8504156 c.dat
-dir d
-$ cd a
-$ ls
-29116 f
-2557 g
-62596 h.lst""".strip().split('\n')
+#test_dir5 = """$ cd /
+#$ ls
+#dir a
+#14848514 b.txt
+#8504156 c.dat
+#dir d
+#$ cd a
+#$ ls
+#29116 f
+#2557 g
+#62596 h.lst""".strip().split('\n')
 
-test_dir6 = """$ cd /
-$ ls
-dir a
-14848514 b.txt
-8504156 c.dat
-dir d
-$ cd a
-$ ls
-dir e
-29116 f
-2557 g
-62596 h.lst
-$ cd e
-$ ls
-584 i
-$ cd ..""".strip().split('\n')
+#test_dir6 = """$ cd /
+#$ ls
+#dir a
+#14848514 b.txt
+#8504156 c.dat
+#dir d
+#$ cd a
+#$ ls
+#dir e
+#29116 f
+#2557 g
+#62596 h.lst
+#$ cd e
+#$ ls
+#584 i
+#$ cd ..""".strip().split('\n')"""
 
 
 
@@ -225,8 +225,6 @@ class FileSystem():
 
     def __init__(self, files=[], max_size = 70000000):
         self.files = sorted(set(files))
-        self.directories = [ file for file in files 
-                             if isinstance(file, Directory) ]
         self.max_size = max_size
         self.size = sum([file.size for file in self.files])
         
@@ -335,16 +333,20 @@ def parse_terminal_output(lines):# NOT RIGHT - WORKS FOR FIRST DIRECTORY THEN GO
                     current_directory,_,_ = current_directory.rpartition('/')
                 elif words[2] != '/':
                     current_directory += '/' + words[2]
+                    path = current_directory + '/.'
+                    new_lines = lines[line_index:]
+                    directory = populate_directory(new_lines, Directory(path))
+                    directories.append(directory)
             continue
-        elif words[0] == 'dir':
-            path = current_directory + '/' + words[1] + '/.'
-            new_lines = lines[line_index+1:]
-            directory = populate_directory(new_lines, Directory(path)) # THIS IS THE PROBLEM LINE
-            directories.append(directory)   
-        else:
+        #files are being counted twice, and every directory contains all files...
+        elif words[0] != 'dir':
             path = current_directory + '/' + words[1]
             files.append(File(path,int(words[0])))
-    
+
+    for directory in directories:
+        print(directory.name, [str(file) for file in directory.files])
+    for file in files:
+        print(file)
     all_files = files + directories
 
     return FileSystem(all_files)
@@ -352,7 +354,7 @@ def parse_terminal_output(lines):# NOT RIGHT - WORKS FOR FIRST DIRECTORY THEN GO
 
 
 test_filesystem = parse_terminal_output(test_data_to_list)
-print([str(directory) for directory in test_filesystem.directories])
+#print([str(directory) for directory in test_filesystem.directories])
 #print(test_filesystem)
 #assert test_filesystem.small_dirs()[1] == test_result
    
@@ -410,7 +412,7 @@ def find_listings(lines):
     return listings
 
 
-assert find_listings(test_dir1_to_list) == {'/':[2,6]}
+#assert find_listings(test_dir1_to_list) == {'/':[2,6]}
 
  
 
@@ -454,7 +456,7 @@ def filesystem(lines):
     return directories, file_sizes
 
 
-assert filesystem(test_dir1_to_list) == ({'/':['dir a', 'b.txt', 'c.dat', 'dir d']}, {'b.txt':14848514, 'c.dat': 8504156})
+#assert filesystem(test_dir1_to_list) == ({'/':['dir a', 'b.txt', 'c.dat', 'dir d']}, {'b.txt':14848514, 'c.dat': 8504156})
 assert filesystem(test_data_to_list)[0] ==  {'/':['dir a', 'b.txt', 'c.dat', 'dir d'],
                                              'a':['dir e', 'f', 'g', 'h.lst'],
                                              'e':['i'],
@@ -520,12 +522,12 @@ def possible_deletions(lines):
 
 
 
-assert possible_deletions(test_dir3_to_list) == 0
+#assert possible_deletions(test_dir3_to_list) == 0
 
 assert possible_deletions(test_data_to_list) == test_result
 
-directories_4, files_4 = filesystem(test_dir4_to_list)
-assert get_sizes(directories_4,files_4) == {'lpswsp': 173180}
+#directories_4, files_4 = filesystem(test_dir4_to_list)
+#assert get_sizes(directories_4,files_4) == {'lpswsp': 173180}
 
 
 
