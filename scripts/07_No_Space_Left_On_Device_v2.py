@@ -120,7 +120,7 @@ class FileSystem():
         
 
     def unused_space(self):
-        return self.max_size - self.total_size()
+        return self.max_size - self.file_size(File('/.'))
     
 
 
@@ -132,12 +132,22 @@ class FileSystem():
             if size > max_size:
                 pass
             else:
-                small_dirs.append(dir.path.removesuffix('/.'))
+                small_dirs.append(dir.path)
                 total_size += size
         
         return small_dirs, total_size
     
+        
 
+    def smallest_poss_del(self, target_space):
+        required_space = target_space - self.unused_space()
+        possible_dels = []
+        for dir in self.directories:
+            size = self.file_size(dir)
+            if size >= required_space:
+                possible_dels.append(dir)
+        possible_dels.sort(key=lambda file: self.file_size(file))
+        return possible_dels[0].path, self.file_size(possible_dels[0])
 
 
 
@@ -203,14 +213,19 @@ assert test_filesystem == test_files
 assert str(test_filesystem) == str(test_files) 
 
 
-assert test_filesystem.small_dirs() == (['/a', '/a/e'], 95437)
+assert test_filesystem.small_dirs() == (['/a/.', '/a/e/.'], 95437)
 assert test_filesystem.small_dirs()[1] == test_result
    
 
 
 
+
+
+
+
 with open('../input_data/07_No_Space_Left_On_Device.txt', 'r', encoding="utf-8") as file:
     input = file.read().strip().split('\n')
+
 
 answer_filesystem = parse_terminal_output(input)
 
@@ -218,5 +233,12 @@ answer_1 = answer_filesystem.small_dirs()[1]
 print(answer_1)
 
 
-    
+
+target_space = 30000000
+
+ 
+assert test_filesystem.smallest_poss_del(target_space) == ('/d/.', 24933642)
+
+answer_2 = answer_filesystem.smallest_poss_del(target_space)[1]
+print(answer_2)
 

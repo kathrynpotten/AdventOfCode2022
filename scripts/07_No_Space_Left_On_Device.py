@@ -304,14 +304,14 @@ test_filesystem = parse_terminal_output(test_data_to_list)
 #assert test_filesystem.small_dirs()[1] == test_result
    
 
-
+"""
 with open('../input_data/07_No_Space_Left_On_Device.txt', 'r', encoding="utf-8") as file:
     input = file.read().strip().split('\n')
 
 answer_filesystem = parse_terminal_output(input)
 
 answer_1 = answer_filesystem.small_dirs()[1]
-print(answer_1)
+print(answer_1) """
 
 
     
@@ -390,6 +390,7 @@ def extract_listing(lines):
 test_dir2 = ['dir xyz', '123 abc']
 
 assert extract_listing(test_dir2) == (['dir xyz', 'abc'], {'abc': 123})
+
 
 def filesystem(lines):
     """ extract filesystem from given terminal output """
@@ -486,7 +487,7 @@ assert possible_deletions(test_data_to_list) == test_result
 with open('../input_data/07_No_Space_Left_On_Device.txt', 'r', encoding="utf-8") as file:
     input = file.read().strip().split('\n')
 
-answer_1 = possible_deletions(input)   
+answer_1 = possible_deletions(input)  
 print(answer_1) """
 
 
