@@ -254,7 +254,7 @@ def populate_directory(directory, files):
     return directory, added
 
 
-def parse_terminal_output(lines):# NOT RIGHT - WORKS FOR FIRST DIRECTORY THEN GOES WRONG - DOING OTHER DIRECTORIES MULTIPLE TIMES
+def parse_terminal_output(lines):
 
     """ takes in lines from terminal output and converts into a filesystem"""
     
