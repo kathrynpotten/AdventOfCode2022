@@ -104,26 +104,38 @@ with open('../input_data/08_Treetop_Tree_House.txt', 'r', encoding="utf-8") as f
 input_array = np.array([list(map(int, re.findall(r"[0-9]", line))) for line in input])
 
 
-#answer_1 = check_patch(input_array)[1]
-#print(answer_1)
+answer_1 = check_patch(input_array)[1]
+print(answer_1)
 
 
 
 
 """ Part 2 """
 
+def scenic(list):
+    visible = []
+    count = 0
+    for i in range(1,len(list)):
+        count +=1
+        if list[i] < list[0]:
+            visible.append(i)
+        else:
+            visible.append(i)
+            break
+    return len(visible)
 
 def scenic_score(tree, array):
     i, j = tree
     scenic_score = 1
-    scenic_score *= len(is_visible(array[i][:j]))
-    scenic_score *= len(is_visible(np.flip(array[i][j+1:])))
-    scenic_score *= len(is_visible(np.flip(array.T[j][i+1:])))
-    scenic_score *= len(is_visible(array.T[j][:i]))
+    scenic_score *= scenic(np.flip(array[i][:j+1]))
+    scenic_score *= scenic(array[i][j:])
+    scenic_score *= scenic(array.T[j][i:])
+    scenic_score *= scenic(np.flip(array.T[j][:i+1]))
     return scenic_score
 
 assert scenic_score((1,2), test_array) == 4
 assert scenic_score((3,2), test_array) == 8
+
 
 def max_scenic_score(array):
     rows, columns = np.shape(array)
@@ -133,4 +145,10 @@ def max_scenic_score(array):
             score = scenic_score((i,j), array)
             scores.append(score)
     return max(scores)
+
+
+assert max_scenic_score(test_array) == 8
     
+
+answer_2 = max_scenic_score(input_array)
+print(answer_2)
