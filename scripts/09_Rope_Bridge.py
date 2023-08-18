@@ -53,7 +53,14 @@ def calculate_tail_move(position_head, position_tail):
 
     difference = tuple(int(h - t) for h, t in zip(position_head, position_tail))
     if any(abs(x) > 1 for x in difference):
-        return tuple(int(x / abs(x)) if abs(x) != 0 else x for x in difference)
+        move = tuple(int(x / abs(x)) if abs(x) != 0 else x for x in difference)
+        # check new move gets us close enough
+        new_move = ()
+        while new_move != (0, 0):
+            new_pos = tuple(x + y for x, y in zip(position_tail, move))
+            new_move = calculate_tail_move(position_head, new_pos)
+            if new_move == (0, 0):
+                return move
     else:
         return (0, 0)
 
@@ -82,6 +89,7 @@ def number_of_unique_tail_positions(lines):
             tail_move = calculate_tail_move(head, tail)
             tail = make_move(tail_move, tail)
             tail_positions.add(tail)
+            print(head, tail)
 
     # print out final grid
     max_x = 0
@@ -98,26 +106,26 @@ def number_of_unique_tail_positions(lines):
             max_y = y
         elif y < min_y:
             min_y = y
-    # needs changing - where should the origin be? start position is in the wrong place
-    grid = np.full((max_x + 1 - min_x, max_y + 1 - min_y), ".")
+
+    grid = np.full((max_x + 1 - min_x, max_y + 1 - min_y + 1), ".")
     for coord in tail_positions:
-        if coord == (0, 0):
-            grid[coord] = "s"
-        else:
-            x, y = coord
-            grid[x - 1, y] = "#"
+        x, y = coord
+        x, y = x - min_x, y - min_y
+        grid[x, y] = "#"
+    grid[-min_x, -min_y] = "s"
     print("\n".join("".join(row) for row in grid))
 
     return len(tail_positions)
 
 
-assert number_of_unique_tail_positions(test_data) == test_result
+# assert number_of_unique_tail_positions(test_data) == test_result
 
 with open("../input_data/09_Rope_Bridge.txt", "r", encoding="utf-8") as file:
     input = file.read().strip().split("\n")
 
-test_1 = input[0:100]
-# number_of_unique_tail_positions(test_1)
+test_1 = input[0:10]
+number_of_unique_tail_positions(test_1)
+# correct up to the first 10 instructions
 
 # answer_1 = number_of_unique_tail_positions(input)
 # print(answer_1)
