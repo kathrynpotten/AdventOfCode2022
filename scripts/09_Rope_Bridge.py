@@ -16,78 +16,46 @@ test_result = 13
 
 def parse_instructions(lines):
     """Parse instructions for head from given list"""
-    directions = {"R": (1, 0), "L": (-1, 0), "U": (0, -1), "D": (0, 1)}
+    directions = {"R": (0, 1), "L": (0, -1), "U": (-1, 0), "D": (1, 0)}
     moves = []
     for line in lines:
-        move = [directions[line[0]], int(line[-1])]
+        move = (directions[line[0]], int(line[-1]))
         moves.append(move)
     return moves
 
 
-assert parse_instructions(["R 4"]) == [[(1, 0), 4]]
+assert parse_instructions(["R 4"]) == [((0, 1), 4)]
 assert parse_instructions(test_data) == [
-    [(1, 0), 4],
-    [(0, -1), 4],
-    [(-1, 0), 3],
-    [(0, 1), 1],
-    [(1, 0), 4],
-    [(0, 1), 1],
-    [(-1, 0), 5],
-    [(1, 0), 2],
+    ((0, 1), 4),
+    ((-1, 0), 4),
+    ((0, -1), 3),
+    ((1, 0), 1),
+    ((0, 1), 4),
+    ((1, 0), 1),
+    ((0, -1), 5),
+    ((0, 1), 2),
 ]
 
 
-def make_move(mover, move, position, grid):
+def make_move(move, position):
     """Move the given mover (H/T) on the grid
     from current position to new one"""
-    grid[position] = "."
-    new_position = tuple(x + y for x, y in zip(position, move))
-    grid[new_position] = mover
-    return grid
+
+    return tuple(x + y for x, y in zip(position, move))
 
 
-test_grid = np.full((6, 5), ".")
-test_grid[(2, 2)] = "H"
-expected_grid = np.full((6, 5), ".")
-expected_grid[(2, 3)] = "H"
-
-assert np.array_equal(make_move("H", (0, 1), (2, 2), test_grid), expected_grid)
+assert make_move((0, 1), (2, 2)) == (2, 3)
 
 
 def calculate_tail_move(position_head, position_tail):
     """Given the current positions,
     calculate the corresponding move for the tail"""
 
-    # if in same column
-    if position_head[0] == position_tail[0]:
-        # check if head is up/down from tail
-        if position_head[1] > position_tail[1]:
-            move = (0, 1)
-        else:
-            move = (0, -1)
-    # if in same row
-    elif position_head[1] == position_tail[1]:
-        # check if head is left/right from tail
-        if position_head[0] > position_tail[0]:
-            move = (1, 0)
-        else:
-            move = (-1, 0)
+    difference = tuple(int(h - t) for h, t in zip(position_head, position_tail))
+    if any(abs(x) > 1 for x in difference):
+        return tuple(int(x / abs(x)) if abs(x) != 0 else x for x in difference)
     else:
-        # check which diagonal
-        if position_head[0] > position_tail[0] and position_head[1] > position_tail[1]:
-            move = (1, 1)
-        elif (
-            position_head[0] > position_tail[0] and position_head[1] < position_tail[1]
-        ):
-            move = (1, -1)
-        elif (
-            position_head[0] < position_tail[0] and position_head[1] < position_tail[1]
-        ):
-            move = (-1, -1)
-        else:
-            move = (-1, 1)
-
-    return move
+        return (0, 0)
 
 
 assert calculate_tail_move((3, 1), (1, 1)) == (1, 0)
@@ -95,5 +63,58 @@ assert calculate_tail_move((1, 3), (1, 1)) == (0, 1)
 assert calculate_tail_move((1, 2), (3, 1)) == (-1, 1)
 assert calculate_tail_move((2, 3), (3, 1)) == (-1, 1)
 
-# set up movement space
-grid = np.full((6, 5), ".")
+
+def number_of_unique_tail_positions(lines):
+    # initialise start
+    head = (0, 0)
+    tail = (0, 0)
+
+    # initialise set to keep track of tail positions
+    tail_positions = set()
+    tail_positions.add(tail)
+
+    head_moves = parse_instructions(lines)
+
+    for move in head_moves:
+        direction, distance = move
+        for _ in range(distance):
+            head = make_move(direction, head)
+            tail_move = calculate_tail_move(head, tail)
+            tail = make_move(tail_move, tail)
+            tail_positions.add(tail)
+
+    # print out final grid
+    max_x = 0
+    max_y = 0
+    min_x = 0
+    min_y = 0
+    for coord in tail_positions:
+        x, y = coord
+        if x > max_x:
+            max_x = x
+        elif x < min_x:
+            min_x = x
+        if y > max_y:
+            max_y = y
+        elif y < min_y:
+            min_y = y
+    # needs changing - where should the origin be?
+    grid = np.full((max_x + 1 - min_x, max_y + 1 - min_y), ".")
+    for coord in tail_positions:
+        x, y = coord
+        grid[x, y] = "#"
+    print("\n".join("".join(row) for row in grid))
+
+    return len(tail_positions)
+
+
+assert number_of_unique_tail_positions(test_data) == test_result
+
+with open("../input_data/09_Rope_Bridge.txt", "r", encoding="utf-8") as file:
+    input = file.read().strip().split("\n")
+
+test_1 = input[0:100]
+# number_of_unique_tail_positions(test_1)
+
+# answer_1 = number_of_unique_tail_positions(input)
+# print(answer_1)
