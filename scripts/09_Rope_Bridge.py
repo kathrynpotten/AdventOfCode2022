@@ -98,11 +98,14 @@ def number_of_unique_tail_positions(lines):
             max_y = y
         elif y < min_y:
             min_y = y
-    # needs changing - where should the origin be?
+    # needs changing - where should the origin be? start position is in the wrong place
     grid = np.full((max_x + 1 - min_x, max_y + 1 - min_y), ".")
     for coord in tail_positions:
-        x, y = coord
-        grid[x, y] = "#"
+        if coord == (0, 0):
+            grid[coord] = "s"
+        else:
+            x, y = coord
+            grid[x - 1, y] = "#"
     print("\n".join("".join(row) for row in grid))
 
     return len(tail_positions)
