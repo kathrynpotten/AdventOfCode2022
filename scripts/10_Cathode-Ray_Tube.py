@@ -79,15 +79,9 @@ print(answer_1)
 """ Part 2 """
 
 
-def sprite_position(X):
-    positions = [X - 1, X, X + 1]
-    pixels = []
-    for position in positions:
-        row = math.floor((position - 1) / 40)
-        col = position - 41 * row
-        pixels.append((row, col))
-
-    return pixels
+def sprite_position(X, cycle):
+    row = math.floor((cycle - 1) / 40)
+    return [(row, X - 1), (row, X), (row, X + 1)]
 
 
 def CRT_draw(screen, sprite_position, current_pixel):
@@ -101,18 +95,9 @@ def CRT_draw(screen, sprite_position, current_pixel):
 
 
 def current_pixel(cycle):
-    if cycle in range(1, 41):
-        return (0, cycle - 1)
-    elif cycle in range(41, 81):
-        return (1, cycle - 41)
-    elif cycle in range(81, 121):
-        return (2, cycle - 81)
-    elif cycle in range(121, 161):
-        return (3, cycle - 121)
-    elif cycle in range(161, 201):
-        return (4, cycle - 161)
-    elif cycle in range(201, 241):
-        return (5, cycle - 201)
+    row = math.floor((cycle - 1) / 40)
+    col = (cycle - 40 * row) - 1
+    return (row, col)
 
 
 def produce_image(instructions):
@@ -120,17 +105,20 @@ def produce_image(instructions):
     current_cycle = 1
     screen = np.full((6, 40), "")
     for instruction in instructions:
-        sprite = sprite_position(X)
+        sprite = sprite_position(X, current_cycle)
         num_of_cycles, add = instruction
         for _ in range(num_of_cycles):
             pixel = current_pixel(current_cycle)
             screen = CRT_draw(screen, sprite, pixel)
-            print("\n".join("".join(row) for row in screen), "\n")
             current_cycle += 1
         X += add
 
     return "\n".join("".join(row) for row in screen)
 
 
-longer_instructions_sample = longer_instructions[:12]
-produce_image(longer_instructions_sample)
+longer_instructions_sample = longer_instructions[:11]
+# print(produce_image(longer_instructions_sample))
+
+# print(produce_image(longer_instructions))
+
+print(produce_image(answer_instructions))
