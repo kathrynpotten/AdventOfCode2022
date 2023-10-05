@@ -133,3 +133,11 @@ def play_monkey_in_the_middle(rounds, input_data):
 
 
 assert play_monkey_in_the_middle(20, test_data) == 10605
+
+
+with open("../input_data/11_Monkey_In_The_Middle.txt", "r", encoding="utf-8") as file:
+    input = file.read().strip()
+
+
+answer_1 = play_monkey_in_the_middle(20, input)
+print(answer_1)
