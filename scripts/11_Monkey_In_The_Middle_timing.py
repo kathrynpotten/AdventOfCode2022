@@ -1,3 +1,6 @@
+""" Timing code """
+
+import timeit
 import math
 import re
 
@@ -84,18 +87,6 @@ class Monkey:
         self.items.append(item)
 
 
-monkey_zero = Monkey(0, [79, 98], "old * 19", 23, 2, 3)
-item = monkey_zero.inspect()
-recipient = monkey_zero.test_worry(item)
-monkey_zero.throw_item(item)
-
-monkey_three = Monkey(3, [74], "old + 3", 17, 0, 1)
-monkey_three.catch_item(item)
-
-assert monkey_zero.items == [98]
-assert monkey_three.items == [74, 500]
-
-
 def parse_input(text):
     monkeys_input = text.split("Monkey ")[1:]
     monkeys = []
@@ -113,13 +104,63 @@ def parse_input(text):
 
 
 monkeys = parse_input(test_data)
-assert str(monkeys[0]) == "Monkey 0 has items 79, 98"
-assert str(monkeys[1]) == "Monkey 1 has items 54, 65, 75, 74"
-assert str(monkeys[2]) == "Monkey 2 has items 79, 60, 97"
-assert str(monkeys[3]) == "Monkey 3 has items 74"
 
+setup = """
+class Monkey:
+    def __init__(self, name, items, operation, test, true_throw, false_throw):
+        self.name = name
+        self.items = items
+        self.operation = operation
+        self.test = test
+        self.true_throw = true_throw
+        self.false_throw = false_throw
+        self.inspected = 0
 
-def round(monkeys, manage_worry=True):
+    def __repr__(self):
+        return f"Monkey {self.name} has items {', '.join(str(item) for item in self.items)}"
+
+    def take_turn(self, manage_worry=True):
+        # inspect
+        old = self.items[0]
+        self.items.remove(old)
+        self.inspected += 1
+        item = eval(self.operation)
+        if manage_worry:
+            item = math.floor(item / 3)
+        # test worry
+        if item % self.test == 0:
+            recipient = self.true_throw
+        else:
+            recipient = self.false_throw
+        # throw item
+        return recipient, item
+
+    def inspect(self, manage_worry=True):
+        old = self.items[0]
+        self.items.remove(old)
+        self.inspected += 1
+        item = eval(self.operation)
+        if manage_worry:
+            item = math.floor(item / 3)
+        self.items.append(item)
+        return item
+
+    def test_worry(self, item):
+        if item % self.test == 0:
+            recipient = self.true_throw
+        else:
+            recipient = self.false_throw
+        return recipient
+
+    def throw_item(self, item):
+        self.items.remove(item)
+
+    def catch_item(self, item):
+        self.items.append(item)
+
+monkeys = [Monkey(0, [79, 98], "old * 19", 23, 2, 3), Monkey(1, [54, 65, 75, 74], "old + 6", 19, 2, 0), Monkey(2, [79, 60, 97], "old * old", 13, 1, 3), Monkey(3, [74], "old + 3", 17, 0, 1)]
+
+def round_v1(monkeys, manage_worry=True):
     for monkey in monkeys:
         for _ in range(len(monkey.items)):
             recipient, item = monkey.take_turn(manage_worry)
@@ -127,18 +168,20 @@ def round(monkeys, manage_worry=True):
     return monkeys
 
 
-monkeys = round(monkeys)
-assert str(monkeys[0]) == "Monkey 0 has items 20, 23, 27, 26"
-assert str(monkeys[1]) == "Monkey 1 has items 2080, 25, 167, 207, 401, 1046"
-assert str(monkeys[2]) == "Monkey 2 has items "
-assert str(monkeys[3]) == "Monkey 3 has items "
+def round_v2(monkeys, manage_worry=True):
+    for monkey in monkeys:
+        for _ in range(len(monkey.items)):
+            item = monkey.inspect(manage_worry)
+            recipient = monkey.test_worry(item)
+            monkey.throw_item(item)
+            monkeys[recipient].catch_item(item)
+    return monkeys
 
+def play_monkey_in_the_middle_v1(rounds, monkeys, manage_worry=True):
 
-def play_monkey_in_the_middle(rounds, input_data, manage_worry=True):
-    monkeys = parse_input(input_data)
 
     for _ in range(rounds):
-        monkeys = round(monkeys, manage_worry)
+        monkeys = round_v1(monkeys, manage_worry)
 
     inspections = [monkey.inspected for monkey in monkeys]
     inspections.sort(reverse=True)
@@ -147,20 +190,24 @@ def play_monkey_in_the_middle(rounds, input_data, manage_worry=True):
     return monkey_business
 
 
-assert play_monkey_in_the_middle(20, test_data) == 10605
-
-assert play_monkey_in_the_middle(1, test_data, False) == 24
-assert play_monkey_in_the_middle(20, test_data, False) == 103 * 99
-assert play_monkey_in_the_middle(1000, test_data, False) == 5204 * 5192
-# assert play_monkey_in_the_middle(10000, test_data, False) == 2713310158
+def play_monkey_in_the_middle_v2(rounds, monkeys, manage_worry=True):
 
 
-with open("../input_data/11_Monkey_In_The_Middle.txt", "r", encoding="utf-8") as file:
-    input = file.read().strip()
+    for _ in range(rounds):
+        monkeys = round_v2(monkeys, manage_worry)
 
+    inspections = [monkey.inspected for monkey in monkeys]
+    inspections.sort(reverse=True)
+    monkey_business = inspections[0] * inspections[1]
 
-answer_1 = play_monkey_in_the_middle(20, input)
-print(answer_1)
+    return monkey_business
 
-# answer_2 = play_monkey_in_the_middle(10000, input, False)
-# print(answer_2)
+"""
+
+stmt = "play_monkey_in_the_middle_v1(20, monkeys, False)"
+
+print(timeit.timeit(stmt, setup, number=10))
+
+stmt2 = "play_monkey_in_the_middle_v2(20, monkeys, False)"
+
+print(timeit.timeit(stmt2, setup, number=10))
