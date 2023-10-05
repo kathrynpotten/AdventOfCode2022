@@ -204,10 +204,96 @@ def play_monkey_in_the_middle_v2(rounds, monkeys, manage_worry=True):
 
 """
 
-stmt = "play_monkey_in_the_middle_v1(20, monkeys, False)"
+stmt = "play_monkey_in_the_middle_v1(100, monkeys, False)"
 
 print(timeit.timeit(stmt, setup, number=10))
 
-stmt2 = "play_monkey_in_the_middle_v2(20, monkeys, False)"
+stmt2 = "play_monkey_in_the_middle_v2(100, monkeys, False)"
 
 print(timeit.timeit(stmt2, setup, number=10))
+
+
+setup = """
+class Monkey:
+    def __init__(self, name, items, operation, test, true_throw, false_throw):
+        self.name = name
+        self.items = items
+        self.operation = operation
+        self.test = test
+        self.true_throw = true_throw
+        self.false_throw = false_throw
+        self.inspected = 0
+
+    def __repr__(self):
+        return f"Monkey {self.name} has items {', '.join(str(item) for item in self.items)}"
+
+    def take_turn(self, manage_worry=True):
+        # inspect
+        old = self.items[0]
+        self.items.remove(old)
+        self.inspected += 1
+        item = eval(self.operation)
+        if manage_worry:
+            item = math.floor(item / 3)
+            worry = item % self.test
+        else:
+            worry = item % self.test
+        # test worry
+        if worry == 0:
+            recipient = self.true_throw
+        else:
+            recipient = self.false_throw
+        # throw item
+        return recipient, item
+
+
+    def inspect(self, manage_worry=True):
+        old = self.items[0]
+        self.items.remove(old)
+        self.inspected += 1
+        item = eval(self.operation)
+        if manage_worry:
+            item = math.floor(item / 3)
+        self.items.append(item)
+        return item
+
+    def test_worry(self, item):
+        if item % self.test == 0:
+            recipient = self.true_throw
+        else:
+            recipient = self.false_throw
+        return recipient
+
+    def throw_item(self, item):
+        self.items.remove(item)
+
+    def catch_item(self, item):
+        self.items.append(item)
+
+monkeys = [Monkey(0, [79, 98], "old * 19", 23, 2, 3), Monkey(1, [54, 65, 75, 74], "old + 6", 19, 2, 0), Monkey(2, [79, 60, 97], "old * old", 13, 1, 3), Monkey(3, [74], "old + 3", 17, 0, 1)]
+
+def round(monkeys, manage_worry=True):
+    for monkey in monkeys:
+        for _ in range(len(monkey.items)):
+            recipient, item = monkey.take_turn(manage_worry)
+            monkeys[recipient].catch_item(item)
+    return monkeys
+
+
+def play_monkey_in_the_middle(rounds,monkeys, manage_worry=True):
+
+    for _ in range(rounds):
+        monkeys = round(monkeys, manage_worry)
+
+    inspections = [monkey.inspected for monkey in monkeys]
+    inspections.sort(reverse=True)
+    monkey_business = inspections[0] * inspections[1]
+
+    return monkey_business
+
+
+"""
+
+stmt = "play_monkey_in_the_middle(100, monkeys, False)"
+
+print(timeit.timeit(stmt, setup, number=10))

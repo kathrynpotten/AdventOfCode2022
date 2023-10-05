@@ -44,7 +44,7 @@ class Monkey:
     def __repr__(self):
         return f"Monkey {self.name} has items {', '.join(str(item) for item in self.items)}"
 
-    def take_turn(self, manage_worry=True):
+    def take_turn(self, test_condition=100, manage_worry=True):
         # inspect
         old = self.items[0]
         self.items.remove(old)
@@ -52,6 +52,8 @@ class Monkey:
         item = eval(self.operation)
         if manage_worry:
             item = math.floor(item / 3)
+        else:
+            item = item % test_condition
         # test worry
         if item % self.test == 0:
             recipient = self.true_throw
@@ -119,10 +121,10 @@ assert str(monkeys[2]) == "Monkey 2 has items 79, 60, 97"
 assert str(monkeys[3]) == "Monkey 3 has items 74"
 
 
-def round(monkeys, manage_worry=True):
+def round(monkeys, test_condition=100, manage_worry=True):
     for monkey in monkeys:
         for _ in range(len(monkey.items)):
-            recipient, item = monkey.take_turn(manage_worry)
+            recipient, item = monkey.take_turn(test_condition, manage_worry)
             monkeys[recipient].catch_item(item)
     return monkeys
 
@@ -136,9 +138,12 @@ assert str(monkeys[3]) == "Monkey 3 has items "
 
 def play_monkey_in_the_middle(rounds, input_data, manage_worry=True):
     monkeys = parse_input(input_data)
+    test_condition = math.lcm(*(monkey.test for monkey in monkeys))
 
-    for _ in range(rounds):
-        monkeys = round(monkeys, manage_worry)
+    for i in range(rounds):
+        if i % 100 == 0 and i > 0:
+            print(f"Running round {i}")
+        monkeys = round(monkeys, test_condition, manage_worry)
 
     inspections = [monkey.inspected for monkey in monkeys]
     inspections.sort(reverse=True)
@@ -152,7 +157,7 @@ assert play_monkey_in_the_middle(20, test_data) == 10605
 assert play_monkey_in_the_middle(1, test_data, False) == 24
 assert play_monkey_in_the_middle(20, test_data, False) == 103 * 99
 assert play_monkey_in_the_middle(1000, test_data, False) == 5204 * 5192
-# assert play_monkey_in_the_middle(10000, test_data, False) == 2713310158
+assert play_monkey_in_the_middle(10000, test_data, False) == 2713310158
 
 
 with open("../input_data/11_Monkey_In_The_Middle.txt", "r", encoding="utf-8") as file:
@@ -162,5 +167,5 @@ with open("../input_data/11_Monkey_In_The_Middle.txt", "r", encoding="utf-8") as
 answer_1 = play_monkey_in_the_middle(20, input)
 print(answer_1)
 
-# answer_2 = play_monkey_in_the_middle(10000, input, False)
-# print(answer_2)
+answer_2 = play_monkey_in_the_middle(10000, input, False)
+print(answer_2)
