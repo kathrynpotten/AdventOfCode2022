@@ -94,9 +94,10 @@ class Path:
             possible_moves.append([(1, 0), "^", step_size])
 
         possible_moves.sort(key=lambda move: move[-1])
+        print(possible_moves)
         best_move = possible_moves[0]
 
-        self.converted_grid[self.current_loc] = 30
+        self.converted_grid[self.current_loc] = -5
         self.current_loc = tuple(x + y for x, y in zip(self.current_loc, best_move[0]))
 
         self.grid[self.current_loc] = best_move[1]
@@ -115,11 +116,11 @@ class Path:
 
 test_path = Path()
 test_path.parse_heightmap(test_data)
-print(test_path.converted_grid)
+# print(test_path.converted_grid)
 
-steps_taken = test_path.climb_to_best_signal_loc()
+# steps_taken = test_path.climb_to_best_signal_loc()
 
-assert steps_taken == test_result
+# assert steps_taken == test_result
 
 with open(
     "../input_data/12_Hill_Climbing_Algorithm.txt", "r", encoding="utf-8"
@@ -130,5 +131,6 @@ with open(
 answer_path = Path()
 answer_path.parse_heightmap(input)
 
-answer_1 = answer_path.climb_to_best_signal_loc()
-print(answer_1)
+
+# answer_1 = answer_path.climb_to_best_signal_loc()
+# print(answer_1)
