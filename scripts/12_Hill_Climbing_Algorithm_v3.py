@@ -63,7 +63,6 @@ class Path:
 
     def take_step(self):
         for coords in self.current_loc:
-            print(coords)
             row, col = coords
             possible_moves = []
             min_elevation = self.converted_grid[row, col] - 1
@@ -97,42 +96,44 @@ class Path:
             ):
                 possible_moves.append((1, 0))
 
-            print(possible_moves)
-
             for move in possible_moves:
                 row, col = tuple(x + y for x, y in zip(coords, move))
                 if self.distance_grid[row, col] == -1:
                     self.distance_grid[row, col] = self.steps_taken
-
-                self.next_loc.add(tuple(x + y for x, y in zip(coords, move)))
-            print(self.next_loc)
-            print(self.distance_grid)
+                    self.next_loc.add(tuple(x + y for x, y in zip(coords, move)))
 
     def calculate_path_distance(self):
-        while self.steps_taken < self.m * self.n:
+        while self.distance_grid[self.start_loc] == -1:
             self.current_loc = self.next_loc
+            self.next_loc = set()
             self.steps_taken += 1
             self.take_step()
 
         return self.distance_grid
 
-    def climb_to_best_signal_loc(self):
-        while self.current_loc != self.start_loc:
-            self.take_step()
-            self.steps_taken += 1
-
-        for index, elem in np.ndenumerate(self.grid):
-            if elem not in ["E", "v", "^", ">", "<"]:
-                self.grid[index] = "."
-
-        return self.steps_taken
+    def total_ditance_from_start(self):
+        return self.distance_grid[self.start_loc]
 
 
 test_path = Path(test_data)
 test_path.parse_heightmap()
-print(test_path.converted_grid)
 
-print(test_path.calculate_path_distance())
-# steps_taken = test_path.climb_to_best_signal_loc()
+test_path.calculate_path_distance()
+steps_taken = test_path.total_ditance_from_start()
 
-# assert steps_taken == test_result
+assert steps_taken == test_result
+
+
+with open(
+    "../input_data/12_Hill_Climbing_Algorithm.txt", "r", encoding="utf-8"
+) as file:
+    input = file.read().strip().split("\n")
+
+
+answer_path = Path(input)
+answer_path.parse_heightmap()
+
+answer_path.calculate_path_distance()
+answer_1 = answer_path.total_ditance_from_start()
+
+print(answer_1)
