@@ -103,7 +103,9 @@ class Path:
                     self.next_loc.add(tuple(x + y for x, y in zip(coords, move)))
 
     def calculate_path_distance(self):
-        while self.distance_grid[self.start_loc] == -1:
+        while np.any(self.distance_grid == -1):
+            if not self.next_loc:
+                break
             self.current_loc = self.next_loc
             self.next_loc = set()
             self.steps_taken += 1
@@ -111,17 +113,27 @@ class Path:
 
         return self.distance_grid
 
-    def total_ditance_from_start(self):
+    def total_distance_from_start(self):
         return self.distance_grid[self.start_loc]
+
+    def minimum_to_best_signal(self, from_height="a"):
+        elev_grid = np.char.replace(self.grid, "S", "a")
+        x, y = np.where(elev_grid == from_height)
+        start_locs = list(zip(x, y))
+        distances = [self.distance_grid[loc] for loc in start_locs]
+        poss_distances = [dist for dist in distances if dist != -1]
+        return min(poss_distances)
 
 
 test_path = Path(test_data)
 test_path.parse_heightmap()
 
 test_path.calculate_path_distance()
-steps_taken = test_path.total_ditance_from_start()
+steps_taken = test_path.total_distance_from_start()
+minimum_from_a = test_path.minimum_to_best_signal()
 
 assert steps_taken == test_result
+assert minimum_from_a == 29
 
 
 with open(
@@ -134,6 +146,7 @@ answer_path = Path(input)
 answer_path.parse_heightmap()
 
 answer_path.calculate_path_distance()
-answer_1 = answer_path.total_ditance_from_start()
+answer_1 = answer_path.total_distance_from_start()
+answer_2 = answer_path.minimum_to_best_signal()
 
-print(answer_1)
+print(answer_1, answer_2)
