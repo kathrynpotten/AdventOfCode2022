@@ -1,4 +1,5 @@
-import ast
+from operator import mul
+
 
 test_data = """[1,1,3,1,1]
 [1,1,5,1,1]
@@ -134,7 +135,7 @@ def input_to_pairs(input):
     pairs_list = input.split("\n\n")
     pairs_strings = [pairs.split("\n") for pairs in pairs_list]
     for str_pair in pairs_strings:
-        pair = [ast.literal_eval(str_list) for str_list in str_pair]
+        pair = [eval(str_list) for str_list in str_pair]
         pairs.append(pair)
     return pairs
 
@@ -147,11 +148,105 @@ assert indices_sum_correct_order(test_pairs)[1] == [1, 2, 4, 6]
 assert indices_sum_correct_order(test_pairs)[0] == 13
 
 with open("../input_data/13_Distress_Signal.txt", "r", encoding="utf-8") as file:
-    input_pairs = input_to_pairs(file.read().strip())
-
-example_pair = input_pairs[25]
-ex_left, ex_right = example_pair[0], example_pair[1]
+    input = file.read().strip()
 
 
+input_pairs = input_to_pairs(input)
 answer_1 = indices_sum_correct_order(input_pairs)
-print(answer_1)
+print(answer_1[0])
+
+
+""" Part Two """
+
+
+def re_order_pair(left, right):
+    if not compare_pairs(left, right):
+        left, right = right, left
+    return left, right
+
+
+def input_to_list(input):
+    signals_list = input.split("\n")
+    signals = [signal for signal in signals_list if signal != ""]
+    return [eval(signal) for signal in signals]
+
+
+def append_divider_packets(signals, *args):
+    for arg in args:
+        signals.append(arg)
+    return signals
+
+
+def re_order_list(signals):
+    # while still in wrong order:
+    for i in range(len(signals)):
+        for j in range(len(signals) - 1):
+            signals[j], signals[i] = re_order_pair(signals[i], signals[j])
+
+    return signals
+
+
+test_data_ordered = """[]
+[[]]
+[[[]]]
+[1,1,3,1,1]
+[1,1,5,1,1]
+[[1],[2,3,4]]
+[1,[2,[3,[4,[5,6,0]]]],8,9]
+[1,[2,[3,[4,[5,6,7]]]],8,9]
+[[1],4]
+[3]
+[[4,4],4,4]
+[[4,4],4,4,4]
+[7,7,7]
+[7,7,7,7]
+[[8,7,6]]
+[9]""".strip()
+
+test_data_with_dividers = """[1,1,3,1,1]
+[1,1,5,1,1]
+[[1],[2,3,4]]
+[[1],4]
+[9]
+[[8,7,6]]
+[[4,4],4,4]
+[[4,4],4,4,4]
+[7,7,7,7]
+[7,7,7]
+[]
+[3]
+[[[]]]
+[[]]
+[1,[2,[3,[4,[5,6,7]]]],8,9]
+[1,[2,[3,[4,[5,6,0]]]],8,9]
+[[2]]
+[[6]]""".strip()
+
+
+input_signals = input_to_list(test_data)
+output_signals = input_to_list(test_data_ordered)
+
+# assert append_divider_packets(input_signals, [[2]], [[6]]) == input_to_list(test_data_with_dividers)
+
+assert re_order_list(input_signals) == output_signals
+
+
+def order_distress_signals(input, *args):
+    input_signals = input_to_list(input)
+    all_signals = append_divider_packets(input_signals, *args)
+    return re_order_list(all_signals)
+
+
+def decoder_key(signals, *args):
+    key = 1
+    for arg in args:
+        key *= signals.index(arg) + 1
+    return key
+
+
+test_ordered = order_distress_signals(test_data, [[2]], [[6]])
+assert decoder_key(test_ordered, [[2]], [[6]]) == 140
+
+ordered_signals = order_distress_signals(input, [[2]], [[6]])
+answer_2 = decoder_key(ordered_signals, [[2]], [[6]])
+print(answer_2)
