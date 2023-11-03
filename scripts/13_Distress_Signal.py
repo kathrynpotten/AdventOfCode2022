@@ -27,13 +27,18 @@ test_data = """[1,1,3,1,1]
 
 def compare_list(left, right):
     correct_order = "no decision"
+    if len(left) == 0 and len(right) > 0:
+        correct_order = True
     for i in range(len(left)):
-        if left[i] > right[i]:
+        try:
+            if left[i] > right[i]:
+                correct_order = False
+                break
+            elif left[i] < right[i]:
+                correct_order = True
+                break
+        except IndexError:
             correct_order = False
-            break
-        elif left[i] < right[i]:
-            correct_order = True
-            break
 
     return correct_order
 
@@ -74,6 +79,7 @@ def compare_pairs(left, right):
                     if list_order != "no decision":
                         correct_order = list_order
                         break
+
             elif type(left_item) == int:
                 if left_item > right_item:
                     correct_order = False
@@ -84,6 +90,9 @@ def compare_pairs(left, right):
 
         except IndexError:
             correct_order = False
+
+    if correct_order == "no decision":
+        correct_order = True
 
     return correct_order
 
@@ -140,7 +149,7 @@ assert indices_sum_correct_order(test_pairs)[0] == 13
 with open("../input_data/13_Distress_Signal.txt", "r", encoding="utf-8") as file:
     input_pairs = input_to_pairs(file.read().strip())
 
-example_pair = input_pairs[1]
+example_pair = input_pairs[25]
 ex_left, ex_right = example_pair[0], example_pair[1]
 
 
